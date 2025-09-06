@@ -6,11 +6,8 @@ export interface AuthRequest extends Request {
 }
 
 export default function middlewareAuth(req: AuthRequest, res: Response, next: NextFunction) {
-  const header = req.headers.authorization;
-  if (!header || !header.startsWith('Bearer ')) {
-    return res.status(401).json({ message: 'Missing or invalid Authorization header' });
-  }
-  const token = header.split(' ')[1];
+  const token = req.cookies.acccessToken;
+  if (!token) return res.status(401).json({message: "No token"})
   try {
     const secret = process.env.JWT_SECRET!;
     const payload = jwt.verify(token, secret) as unknown as { sub: number; iat: number; exp: number };

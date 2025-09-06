@@ -7,7 +7,7 @@ import type { AuthRequest } from '../middleware/middlewareAuth';
 
 function signAccessToken(userId: number) {
   const secret = process.env.JWT_SECRET!;
-  return jwt.sign({ sub: userId }, secret, { expiresIn: '15m' }); // 15 นาที
+  return jwt.sign({ sub: userId }, secret, { expiresIn: '15m' }); 
 }
 
 export async function register(req: Request, res: Response) {
@@ -28,7 +28,7 @@ export async function register(req: Request, res: Response) {
       data: { email, passwordHash, name }
     });
 
-    // สมัครเสร็จ อาจจะให้ token เลย หรือให้ไปล็อกอินเอง
+    
     const token = signAccessToken(user.id);
     return res.status(201).json({
       user: { id: user.id, email: user.email, name: user.name },
@@ -55,9 +55,16 @@ export async function login(req: Request, res: Response) {
     if (!ok) return res.status(401).json({ message: 'Invalid email or password' });
 
     const token = signAccessToken(user.id);
+
+    res.cookie("acccessToken", token, {
+      httpOnly:true,
+      secure:process.env.NODE_ENV === 'production',
+      sameSite: "strict",
+      maxAge : 15*60*1000
+    })
+
     return res.json({
-      user: { id: user.id, email: user.email, name: user.name },
-      accessToken: token
+      user: { id: user.id, email: user.email, name: user.name }
     });
   } catch (e) {
     console.error(e);
